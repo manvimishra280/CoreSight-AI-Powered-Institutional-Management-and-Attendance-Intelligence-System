@@ -1,0 +1,58 @@
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+*.env
+
+# Google credential/token artifacts - never commit
+credentials.json
+token.json
+client_secret*.json
+service-account*.json
+
+# Model weights - large binaries, fetched via scripts/download_model_weights.sh
+# + scripts/convert_minifas_to_onnx.py instead. See README "Real AI model
+# integration".
+models/
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python environment/config
+.python-version
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# CoreSight generated/local data
+backend/Dataset/
+backend/Details/
+backend/Documents/
+backend/Encodings/
+
+# Model/cache files
+*.pkl
+*.pickle
+*.joblib
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
