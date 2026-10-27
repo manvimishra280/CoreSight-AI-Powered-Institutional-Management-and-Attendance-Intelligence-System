@@ -54,5 +54,4 @@ backend/Encodings/
 .DS_Store
 Thumbs.db
 
-# 
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# uvicorn app.main:app --reload --host 0.0.0.0 --port 8000

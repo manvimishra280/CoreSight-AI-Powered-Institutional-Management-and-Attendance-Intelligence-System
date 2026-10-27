@@ -5,14 +5,13 @@ export interface User {
   name: string;
   role: Role;
   email: string;
-  // present only for student role
   rollNumber?: string;
   batchId?: string;
 }
 
 export interface AcademicSession {
   id: string;
-  label: string; // e.g. "2026-27"
+  label: string;
   active: boolean;
   batchIds: string[];
 }
@@ -29,7 +28,7 @@ export interface SyncSummary {
 
 export interface Batch {
   id: string;
-  name: string; // e.g. "CSE AIML 2027"
+  name: string;
   department: string;
   year: number;
   section: string;

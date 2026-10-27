@@ -50,8 +50,11 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 class ActivateAccountRequest(BaseModel):
     token: str
     newPassword: str
+
 class ChangePasswordRequest(BaseModel):
+    current_password: str
     new_password: str
+
 
 @router.post("/change-password")
 def change_password(
@@ -59,20 +62,48 @@ def change_password(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-
+    # Validate new password length.
     if len(payload.new_password) < 8:
         raise HTTPException(
-            status_code=400,
-            detail=(
-                "Password must be at least "
-                "8 characters"
-            ),
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters",
+        )
+
+    if len(payload.new_password) > 128:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must not exceed 128 characters",
+        )
+
+    # Verify the existing password before allowing a change.
+    authenticated = authenticate(
+        db,
+        current_user.email,
+        payload.current_password,
+    )
+
+    if authenticated is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+
+    # Avoid changing to the same password.
+    same_password = authenticate(
+        db,
+        current_user.email,
+        payload.new_password,
+    )
+
+    if same_password is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from current password",
         )
 
     current_user.password_hash = hash_password(
         payload.new_password
     )
-
     current_user.must_change_password = False
 
     db.commit()

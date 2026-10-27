@@ -1,48 +1,79 @@
-import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {
+  useState,
+  type FormEvent,
+} from 'react';
+
+import {
+  Navigate,
+  useNavigate,
+} from 'react-router-dom';
+
 import { Button } from '../../components/common/Button';
-import { changePassword } from '../../api/auth';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ChangePassword() {
+  const {
+    user,
+    changePassword,
+    loading,
+    error,
+    mustChangePassword,
+  } = useAuth();
+
   const navigate = useNavigate();
 
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] =
+    useState('');
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [confirmPassword, setConfirmPassword] =
+    useState('');
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  const [localError, setLocalError] =
+    useState('');
 
-    setError('');
+  if (!user) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+  }
+
+  async function handleSubmit(
+    event: FormEvent
+  ) {
+    event.preventDefault();
+
+    setLocalError('');
 
     if (newPassword.length < 8) {
-      setError('Password must contain at least 8 characters.');
+      setLocalError(
+        'Password must contain at least 8 characters.'
+      );
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.');
+      setLocalError(
+        'Passwords do not match.'
+      );
       return;
     }
 
-    setLoading(true);
-
     try {
-      await changePassword(newPassword);
-
-      navigate('/login', {
-        replace: true,
-      });
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to change password.'
+      await changePassword(
+        newPassword
       );
-    } finally {
-      setLoading(false);
+
+      navigate(
+        `/${user.role}`,
+        {
+          replace: true,
+        }
+      );
+    } catch {
+      // AuthContext provides the error.
     }
   }
 
@@ -62,12 +93,15 @@ export default function ChangePassword() {
 
         <div className="mb-6">
           <h1 className="font-display text-2xl font-semibold">
-            Create your password
+            {mustChangePassword
+              ? 'Create your password'
+              : 'Change password'}
           </h1>
 
           <p className="mt-2 text-sm text-text-dim">
-            Your account is using a temporary password.
-            Create a new secure password to continue.
+            {mustChangePassword
+              ? 'You are signing in with a temporary password. Create a new password to continue.'
+              : 'Create a new secure password for your CoreSight account.'}
           </p>
         </div>
 
@@ -87,9 +121,12 @@ export default function ChangePassword() {
               minLength={8}
               value={newPassword}
               onChange={(e) =>
-                setNewPassword(e.target.value)
+                setNewPassword(
+                  e.target.value
+                )
               }
               className="w-full mt-1.5 bg-surface-2 border border-border rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-accent"
+              autoComplete="new-password"
             />
           </div>
 
@@ -104,15 +141,18 @@ export default function ChangePassword() {
               minLength={8}
               value={confirmPassword}
               onChange={(e) =>
-                setConfirmPassword(e.target.value)
+                setConfirmPassword(
+                  e.target.value
+                )
               }
               className="w-full mt-1.5 bg-surface-2 border border-border rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-accent"
+              autoComplete="new-password"
             />
           </div>
 
-          {error && (
+          {(localError || error) && (
             <p className="text-xs text-blocked">
-              {error}
+              {localError || error}
             </p>
           )}
 
@@ -123,10 +163,13 @@ export default function ChangePassword() {
           >
             {loading
               ? 'Updating password…'
-              : 'Create password'}
+              : mustChangePassword
+                ? 'Create password'
+                : 'Update password'}
           </Button>
 
         </form>
+
       </div>
     </div>
   );
